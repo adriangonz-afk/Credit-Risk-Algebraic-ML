@@ -1,86 +1,144 @@
 # Algebraic Diagnosis of Credit Risk
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![NumPy](https://img.shields.io/badge/Library-NumPy-orange) ![Status](https://img.shields.io/badge/Status-Completed-green)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![NumPy](https://img.shields.io/badge/Library-NumPy-orange)
+![Status](https://img.shields.io/badge/Status-Completed-green)
+
+---
+
+## Why this project?
+
+Many credit risk models fail not because of the algorithm, but because the feature space itself is unstable.
+
+In real banking and financial environments, multicollinearity, redundant variables, and ill-conditioned matrices silently degrade model reliability, even when accuracy metrics appear acceptable.
+
+This project focuses on diagnosing those algebraic issues before trusting any model.
+
+---
 
 ## Project Overview
 
-This project approaches the Credit Risk classification problem through the lens of **Linear Algebra** rather than standard "black box" Machine Learning techniques. Using the **German Credit Risk dataset** (UCI), the primary objective is to diagnose the algebraic stability of the feature space before model training.
+This repository analyzes the German Credit Risk dataset (UCI) from a Linear Algebra–first perspective, treating credit risk modeling as a matrix stability problem rather than a black-box classification task.
 
-The core hypothesis is that the blind application of logistic regression or decision trees on **ill-conditioned data** leads to unstable predictions. This project demonstrates how analyzing matrix properties—specifically Rank, Singular Value Decomposition (SVD), and Condition Number—can detect multicollinearity and structural redundancy that statistical summaries often miss.
+Instead of starting with Logistic Regression or Tree-based models, the project first asks:
+
+> Is the system \( X\theta = y \) mathematically stable enough to trust its predictions?
 
 ---
 
 ## Mathematical Foundation
 
-The project models credit risk as an overdetermined linear system:
+The credit risk problem is formulated as an overdetermined linear system:
 
-$$X\theta = y$$
+\[
+X\theta = y
+\]
 
-Where $X$ represents the client features matrix and $y$ the default risk vector. The analysis contrasts two approaches to finding the parameter vector $\theta$:
+Two analytical approaches are contrasted.
 
-### 1. The Normal Equation (Classical OLS)
-The standard analytical solution attempts to invert the Gram matrix ($X^T X$):
+---
 
-$$\theta = (X^T X)^{-1} X^T y$$
+### 1. Normal Equation (Classical OLS)
 
-This method fails or produces numerically unstable results when columns in $X$ are linearly dependent (multicollinearity), causing the determinant to approach zero ($\det(X^T X) \approx 0$).
+\[
+\theta = (X^T X)^{-1} X^T y
+\]
 
-### 2. Moore-Penrose Pseudoinverse (SVD)
-To resolve the singularity issue, this project implements the Singular Value Decomposition (SVD) method to compute the pseudoinverse ($X^+$). This creates a minimum-norm solution that remains stable even in the presence of redundant features:
+This approach becomes unreliable when:
+- Features are highly correlated
+- The Gram matrix \( X^T X \) is close to singular
+- Small numerical noise is amplified into large parameter errors
 
-$$\theta_{SVD} = V \Sigma^+ U^T y$$
+---
+
+### 2. Moore–Penrose Pseudoinverse (SVD)
+
+To ensure numerical stability, the model uses Singular Value Decomposition:
+
+\[
+X = U \Sigma V^T
+\quad \Rightarrow \quad
+\theta = V \Sigma^+ U^T y
+\]
+
+This produces a minimum-norm solution that remains stable even when the system is ill-conditioned or redundant.
 
 ---
 
 ## Dataset
 
-* **Source**: [German Credit Data (UCI Machine Learning Repository)](https://archive.ics.uci.edu/ml/datasets/statlog+(german+credit+data))
-* **Observations**: 1000 loan applicants.
-* **Target**: 700 Good Credit (0), 300 Bad Credit (1).
-* **Features**: A mix of numerical (Duration, Amount, Age) and categorical (Employment, Housing, Purpose) variables transformed via One-Hot Encoding.
+- Source: German Credit Data (UCI Machine Learning Repository)
+- Observations: 1000 loan applicants
+- Target Variable: Credit Default  
+  - 0: Good Credit  
+  - 1: Bad Credit
+- Features:
+  - Numerical: duration, credit amount, age
+  - Categorical: employment, housing, loan purpose (One-Hot Encoded)
 
 ---
 
 ## Methodology
 
-The repository is structured to simulate a rigorous engineering workflow:
+### 1. Feature Space Construction
+- One-Hot Encoding of categorical variables
+- Normalization of numerical features
+- Explicit bias term inclusion
 
-1.  **Feature Space Construction**: Transformation of categorical variables via One-Hot Encoding and normalization of numerical vectors to ensure consistent basis alignment.
-2.  **Algebraic Diagnosis**:
-    * **Rank Analysis**: Comparing `Rank(X)` against the number of features to identify linear dependencies.
-    * **Condition Number**: Calculating $\kappa(A)$ to quantify the system's sensitivity to noise.
-3.  **Stability Testing**: Attempting to solve the system using both `numpy.linalg.inv` (standard inversion) and `numpy.linalg.pinv` (SVD-based pseudoinverse) to demonstrate the difference in numerical stability.
-4.  **Financial Interpretation**: Mapping the resulting stable coefficients back to business logic to determine which variables truly drive credit default risk.
+### 2. Algebraic Diagnosis
+- Rank analysis to detect linear dependence
+- Condition number to measure numerical instability
+- SVD spectrum analysis to identify redundancy
+
+### 3. Stability Testing
+- Classical inversion using `numpy.linalg.inv`
+- Robust solution using `numpy.linalg.pinv`
+
+### 4. Financial Interpretation
+- Mapping stable coefficients back to business logic
+- Identifying variables that reduce or increase default risk
 
 ---
 
-## Key Findings & Diagnosis
-
-The algebraic diagnosis of the matrix $X$ yielded critical insights:
+## Key Findings and Diagnosis
 
 | Metric | Result | Interpretation |
-| :--- | :--- | :--- |
-| **Rank** | Full Rank (49/49) | No perfect multicollinearity exists. |
-| **Condition Number** | **7.34e+04** | **Ill-Conditioned**. The system is highly sensitive to input noise. Standard inversion is risky. |
-| **SVD Spectrum** | Steep Decay | Significant dimensional redundancy. A few features capture the majority of the variance. |
-| **Model Accuracy** | **78.60%** | The linear signal is strong enough to predict default with high accuracy despite the condition number. |
+|------|------|------|
+| Rank | Full (49 / 49) | No exact multicollinearity |
+| Condition Number | 7.34e+04 | Ill-conditioned system |
+| SVD Spectrum | Steep decay | Strong dimensional redundancy |
+| Model Accuracy | 78.60% | Strong linear signal |
+
+A full-rank matrix does not guarantee numerical stability. High condition numbers can severely destabilize classical solutions.
 
 ---
 
-## Final Algebraic Model
+## Final Algebraic Credit Risk Model
 
-Based on the weights obtained via Singular Value Decomposition (SVD), we constructed a linear equation to approximate the **Credit Risk Score ($\hat{y}$)**. This equation quantifies how specific client characteristics increase or decrease the probability of default.
+Based on SVD-derived coefficients, the final linear approximation of credit risk is:
 
-**Model Equation:**
-$$\hat{y} \approx 0.6090 - 0.2702(X_{A14}) - 0.2579(X_{A34}) - 0.2545(X_{A48}) - 0.2504(X_{A410})$$
+\[
+\hat{y} \approx 0.6090
+- 0.2702(X_{A14})
+- 0.2579(X_{A34})
+- 0.2545(X_{A48})
+- 0.2504(X_{A410})
+\]
 
-**Key Components:**
-1.  **Base Risk ($\beta_0 = 0.6090$):** The intercept represents the starting probability of default (approx. 60%) for a client with no other distinguishing features. This indicates a high baseline risk in the population.
-2.  **Risk Reducers (Negative Weights):**
-    * **$X_{A14}$ (-0.2702):** Client has **no checking account**. This implies the absence of negative balances or overdrafts, acting as a strong stability indicator.
-    * **$X_{A34}$ (-0.2579):** Client has **critical/existing credit history**. Successfully managing debts at other banks serves as proof of reliability.
-    * **$X_{A48}$ (-0.2545):** Loan purpose is **Retraining/Education**.
-    * **$X_{A410}$ (-0.2504):** Loan purpose is **Business/Other**.
+### Interpretation
+
+- Base Risk (\( \beta_0 = 0.6090 \))  
+  High baseline default probability across the population.
+
+- Risk-Reducing Factors:
+  - \( X_{A14} \): No checking account  
+    Indicates absence of overdrafts or negative balances.
+  - \( X_{A34} \): Critical or existing credit history  
+    Demonstrates proven debt management.
+  - \( X_{A48} \): Loan purpose related to education or retraining.
+  - \( X_{A410} \): Business or other productive loan purposes.
+
+These coefficients align with real-world financial intuition.
 
 ---
 
@@ -89,10 +147,10 @@ $$\hat{y} \approx 0.6090 - 0.2702(X_{A14}) - 0.2579(X_{A34}) - 0.2545(X_{A48}) -
 ```text
 credit-risk-algebraic-diagnosis/
 ├── data/
-│   ├── raw/            # Original German Credit CSV (german.data)
-│   └── processed/      # Normalized matrices (X_matrix.npy, y_vector.npy)
+│   ├── raw/            # Original German Credit dataset
+│   └── processed/      # Normalized matrices (X, y)
 ├── notebooks/
-│   ├── 01_feature_engineering.ipynb    # Data cleaning, One-Hot Encoding, and Matrix Generation
-│   ├── 02_algebraic_diagnosis.ipynb    # Rank, SVD, and Condition Number analysis
-│   └── 03_model_stability.ipynb        # OLS vs SVD comparison and Final Predictions
-└── README.md           # Project documentation
+│   ├── 01_feature_engineering.ipynb
+│   ├── 02_algebraic_diagnosis.ipynb
+│   └── 03_model_stability.ipynb
+└── README.md
