@@ -105,8 +105,8 @@ git clone [https://github.com/adriangonz-afk/Credit-Risk-Algebraic-ML.git](https
 cd Credit-Risk-Algebraic-ML
 Run the notebooks:
 
-Start with 01_feature_engineering.ipynb to download data from UCI and generate the matrices.
+    * Start with 01_feature_engineering.ipynb to download data from UCI and generate the matrices.
 
-Proceed to 02_algebraic_diagnosis.ipynb to perform the health check on the matrix.
+    * Proceed to 02_algebraic_diagnosis.ipynb to perform the health check on the matrix.
 
-Finish with 03_model_stability.ipynb to see the final predictions and model weights.
+    * Finish with 03_model_stability.ipynb to see the final predictions and model weights.
