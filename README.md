@@ -110,3 +110,11 @@ Run the notebooks:
     * Proceed to 02_algebraic_diagnosis.ipynb to perform the health check on the matrix.
 
     * Finish with 03_model_stability.ipynb to see the final predictions and model weights.
+
+###  Execute in Google Colab
+
+| Notebook | Description | Link |
+| :--- | :--- | :--- |
+| **01. Feature Engineering** | Data ingestion, cleaning & matrix construction. | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/adriangonz-afk/Credit-Risk-Algebraic-ML/blob/main/notebooks/01_feature_engineering.ipynb) |
+| **02. Algebraic Diagnosis** | Rank analysis & SVD stability check. | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/adriangonz-afk/Credit-Risk-Algebraic-ML/blob/main/notebooks/02_algebraic_diagnosis.ipynb) |
+| **03. Model Stability** | OLS vs. SVD Comparison & Final Predictions. | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/adriangonz-afk/Credit-Risk-Algebraic-ML/blob/main/notebooks/03_model_stability.ipynb) |
